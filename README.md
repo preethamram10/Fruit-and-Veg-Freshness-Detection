@@ -1,86 +1,83 @@
-# Fruit-and-Veg-Freshness-Detection
-This repository uses TensorFlow/Keras to classify fruits and vegetables as fresh or rotten across 20 classes. It features MobileNetV2 for efficient feature extraction and a custom classification head. Data augmentation ensures robustness. The trained model is saved as `fruit_veg_freshness_model.h5` for future use or deployment.
+import os
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.optimizers import Adam
 
-requirement  :
 
 
-asgiref==3.8.1
-Django==5.1.1
-sqlparse==0.5.1
-tzdata==2024.1
-absl-py==2.1.0
-astunparse==1.6.3
-certifi==2024.8.30
-charset-normalizer==3.4.0
-flatbuffers==24.3.25
-gast==0.6.0
-google-pasta==0.2.0
-grpcio==1.66.2
-h5py==3.12.1
-idna==3.10
-keras==3.6.0
-libclang==18.1.1
-Markdown==3.7
-markdown-it-py==3.0.0
-MarkupSafe==3.0.1
-mdurl==0.1.2
-ml-dtypes==0.4.1
-namex==0.0.8
-numpy==1.26.4
-opt_einsum==3.4.0
-optree==0.13.0
-packaging==24.1
-pillow==10.4.0
-protobuf==4.25.5
-Pygments==2.18.0
-requests==2.32.3
-rich==13.9.2
-scipy==1.14.1
-setuptools==75.1.0
-six==1.16.0
-tensorboard==2.17.1
-tensorboard-data-server==0.7.2
-tensorflow==2.17.0
-tensorflow-intel==2.17.0
-termcolor==2.5.0
-typing_extensions==4.12.2
-urllib3==2.2.3
-Werkzeug==3.0.4
-wheel==0.44.0
-wrapt==1.16.0
-asgiref==3.8.1
-Django==5.1.1
-sqlparse==0.5.1
-tzdata==2024.1
-absl-py==2.1.0
-astunparse==1.6.3
-certifi==2024.8.30
-charset-normalizer==3.4.0
-flatbuffers==24.3.25
-gast==0.6.0
-google-pasta==0.2.0
-grpcio==1.66.2
-h5py==3.12.1
-idna==3.10
-keras==3.6.0
-libclang==18.1.1
-Markdown==3.7
-markdown-it-py==3.0.0
-MarkupSafe==3.0.1
-mdurl==0.1.2
-ml-dtypes==0.4.1
-namex==0.0.8
-numpy==1.26.4
-opt_einsum==3.4.0
-optree==0.13.0
-packaging==24.1
-pillow==10.4.0
-protobuf==4.25.5
-Pygments==2.18.0
-requests==2.32.3
-rich==13.9.2
-scipy==1.14.1
-setuptools==75.1.0
+base_dir = 'data_set'
+fruit_dir = os.path.join(base_dir, 'Fruits')
+veg_dir = os.path.join(base_dir, 'Vegetables')
+
+
+fruit_classes = ['FreshApple', 'RottenApple', 'FreshBanana', 'RottenBanana', 'FreshMango', 'RottenMango', 'FreshOrange', 'RottenOrange', 'FreshStrawberry', 'RottenStrawberry']
+veg_classes = ['FreshCarrot', 'RottenCarrot', 'FreshTomato', 'RottenTomato', 'FreshCucumber', 'RottenCucumber', 'FreshPotato', 'RottenPotato', 'FreshBellpepper', 'RottenBellpepper']
+
+all_classes = fruit_classes + veg_classes
+
+
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    validation_split=0.2
+)
+
+
+train_generator = train_datagen.flow_from_directory(
+    base_dir,
+    target_size=(150, 150),
+    batch_size=32,
+    classes=all_classes,
+    class_mode='categorical',
+    subset='training'
+)
+
+
+validation_generator = train_datagen.flow_from_directory(
+    base_dir,
+    target_size=(150, 150),
+    batch_size=32,
+    classes=all_classes,
+    class_mode='categorical',
+    subset='validation'
+)
+
+base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(150, 150, 3))
+
+
+base_model.trainable = False
+
+model = Sequential([
+    base_model,
+    GlobalAveragePooling2D(),
+    Dropout(0.5),
+    Dense(128, activation='relu'),
+    Dropout(0.5),
+    Dense(len(all_classes), activation='softmax')  # Number of classes
+])
+
+
+model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+
+print("Train the model")
+
+history = model.fit(
+    train_generator,
+    steps_per_epoch=train_generator.samples // train_generator.batch_size,
+    validation_data=validation_generator,
+    validation_steps=validation_generator.samples // validation_generator.batch_size,
+    epochs=10
+)
+
+
+print("Save the combined model")
+
+model.save('fruit_veg_freshness_model.h5')
 six==1.16.0
 tensorboard==2.17.1
 tensorboard-data-server==0.7.2
