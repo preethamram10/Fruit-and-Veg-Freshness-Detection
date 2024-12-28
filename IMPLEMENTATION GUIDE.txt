@@ -1,0 +1,19 @@
+INSTALL
+----------------
+PYTHON 3.11/3.12
+
+----------------
+1.OPEN FILE DIRECTORY IN CMD (COMMAND PROMPT)
+2.AFTER OPENING CMD 
+C:\Users\HP\Desktop\ProjectS\Fruit and Veg Freshness Detection
+
+pip install -r requirements.txt
+
+python manage.py runserver
+
+3.NOW ITS RUNNING COPY AND PASTE URL IN BROWSER
+
+http://localhost:8000/
+
+------------------------------
+
